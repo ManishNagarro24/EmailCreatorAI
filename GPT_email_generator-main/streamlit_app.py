@@ -8,6 +8,9 @@ from langchain.llms import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
+from PIL import Image
+import base64
+from io import BytesIO
 
 st.set_page_config(page_title="Nagarro", page_icon="img/Nagarro_logo.png",)
 
@@ -183,7 +186,26 @@ A good campaign email combines information about the reason of the campaign.Leng
 
     pass
 
+def get_base64_from_image(image):
+    if isinstance(image, Image.Image):
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        return f"data:image/jpeg;base64,{img_str}"
+    return ""
 
+
+def getImageString(uploaded_file):
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        # Read the image file
+        # Display the uploaded image
+        st.image(image, caption='Uploaded Image')
+        #Convert the image to base64
+        img_base64 = get_base64_from_image(image)
+        # Generate HTML string with the image
+        image_string = f'<img src="{img_base64}" alt="Uploaded Image">'  
+    return image_string
 
 
 
@@ -208,6 +230,7 @@ def main_gpt3emailgen():
 
             input_c1 = st.text_input('Enter email contents down below! (currently 2x seperate topics supported)', 'topic 1')
             input_c2 = st.text_input('', 'topic 2 (optional)')
+            uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
 
             email_text = "" 
             col1, col2, col3, space,col5,col6,col4 = st.columns([5, 5, 5, 0.5, 5,5,5])
@@ -271,8 +294,11 @@ def main_gpt3emailgen():
       #  st.subheader('\nHere is the Email Body Content\n')
       #  with st.expander("SECTION - Email Output", expanded=True):
       #      st.markdown(email_text)  #output the results
+    if uploaded_file!=None:
+        st.write('\n')
+        html_string=html_string.replace("IMAGE1",getImageString(uploaded_file))
+        st.components.v1.html(html_string,width=700, height=1500, scrolling=True)
 
-    
 if __name__ == '__main__':
     # call main function
     main_gpt3emailgen()
