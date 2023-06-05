@@ -156,6 +156,8 @@ def generate_Variable_content(Variable,Context):
 
 def get_base64_from_image(image):
     if isinstance(image, Image.Image):
+        if image.mode == "RGBA":
+            image = image.convert("RGB")  # Convert RGBA to RGB
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
@@ -166,11 +168,10 @@ def getImageString(uploaded_file):
         image = Image.open(uploaded_file)
         # Read the image file
         # Display the uploaded image
-        st.image(image, caption='Uploaded Image')
         #Convert the image to base64
         img_base64 = get_base64_from_image(image)
         # Generate HTML string with the image
-        image_string = f'<img src="{img_base64}" alt="Uploaded Image">'  
+        image_string = f'<div style="max-width: 100%;"><img src="{img_base64}" alt="Uploaded Image" style="max-width:100%;"></div>'
     return image_string
 
    
@@ -257,6 +258,7 @@ def main_gpt3emailgen():
                                                             Variable2,Variable2_Context)
                                 Variable3_Content=generate_Variable_content(
                                                             Variable3,Variable3_Context)
+                                
             
             
                                 
@@ -269,6 +271,7 @@ def main_gpt3emailgen():
          #   st.markdown(Variable2_Content)
 
         html_string=html_string.replace("DATA1 ",email_text)
+        html_string=html_string.replace("IMAGE1",getImageString(uploaded_file))
         html_string=html_string.replace("Variable1",input_c1)  
         html_string=html_string.replace("Variable2",Variable2) 
         html_string=html_string.replace("Context2",Variable2_Content) 
@@ -290,10 +293,7 @@ def main_gpt3emailgen():
       #  st.subheader('\nHere is the Email Body Content\n')
       #  with st.expander("SECTION - Email Output", expanded=True):
       #      st.markdown(email_text)  #output the results
-    if uploaded_file!=None:
-        st.write('\n')
-        html_string=html_string.replace("IMAGE1",getImageString(uploaded_file))
-        st.components.v1.html(html_string,width=700, height=1500, scrolling=True)
+    
 
     
 if __name__ == '__main__':
